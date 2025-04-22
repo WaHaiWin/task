@@ -1,0 +1,35 @@
+import requests
+
+def download_data(url: str) -> list[float]:
+    resp = requests.get(url)
+    resp.raise_for_status()
+    lines = resp.text.strip().splitlines()
+    data = [float(line) for line in lines if line.strip()]
+    return data
+
+def compute_mean(data: list[float]) -> float:
+    total = 0.0
+    for x in data:
+        total += x
+    return total / len(data)
+
+def compute_std(data: list[float], mean: float) -> float:
+    sum_sq = 0.0
+    for x in data:
+        sum_sq += (x - mean) ** 2
+    variance = sum_sq / len(data)
+    return variance ** 0.5
+
+def main():
+    url = "https://cloud.physics.itmo.ru/s/pY86e5CrdtQHF6M/download"
+    data = download_data(url)
+
+    μ = compute_mean(data)
+    σ = compute_std(data, μ)
+
+    print(f"Количество точек: {len(data)}")
+    print(f"Среднее значение:               {μ:.6f}")
+    print(f"Среднеквадратичное отклонение: {σ:.6f}")
+
+if __name__ == "__main__":
+    main()
