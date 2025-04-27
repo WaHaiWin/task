@@ -1,35 +1,63 @@
 import requests
 
-def download_data(url: str) -> list[float]:
-    resp = requests.get(url)
-    resp.raise_for_status()
-    lines = resp.text.strip().splitlines()
-    data = [float(line) for line in lines if line.strip()]
-    return data
+def download_file(url: str, filename: str) -> None:
+    response = requests.get(url)
+    response.raise_for_status() 
+    with open(filename, 'wb') as file:
+        file.write(response.content)
 
-def compute_mean(data: list[float]) -> float:
-    total = 0.0
-    for x in data:
-        total += x
-    return total / len(data)
+def read_data(filename: str) -> list[float]:
+      values = []
+    with open(filename, 'r') as file:
+        for line in file:
+            parts = line.strip().split()
+            if len(parts) >= 2:
+                value_str = parts[1].replace(',', '.')
+                values.append(float(value_str))
+    return values
 
-def compute_std(data: list[float], mean: float) -> float:
-    sum_sq = 0.0
-    for x in data:
-        sum_sq += (x - mean) ** 2
-    variance = sum_sq / len(data)
-    return variance ** 0.5
+def compute_std_and_mean_deviation(data: list[float]) -> tuple[float, float]:
+    n = len(data)
+    if n == 0:
+        return 0.0, 0.0
+
+  
+    total_squared_diff = 0.0
+    total_sum = 0.0
+    total_abs_diff = 0.0
+    for value in data:
+        total_sum += value
+        total_squared_diff += value ** 2
+        total_abs_diff += abs(value)
+
+
+    mean = total_sum / n
+
+    
+    mean_square = total_sum ** 2 / n
+    variance = (total_squared_diff - mean_square) / n
+    std_dev = variance ** 0.5
+
+   
+    mean_deviation = total_abs_diff / n
+
+    return std_dev, mean_deviation
 
 def main():
-    url = "https://cloud.physics.itmo.ru/s/pY86e5CrdtQHF6M/download"
-    data = download_data(url)
+    url = 'https://cloud.physics.itmo.ru/s/pY68e5CrdtQHF6M/download/CdSe_CdZnS%20Core_Shell.txt'
+    filename = 'CdSe_CdZnS_Core_Shell.txt'
+    
+  
+    download_file(url, filename)
 
-    μ = compute_mean(data)
-    σ = compute_std(data, μ)
+    
+    data = read_data(filename)
 
-    print(f"Количество точек: {len(data)}")
-    print(f"Среднее значение:               {μ:.6f}")
-    print(f"Среднеквадратичное отклонение: {σ:.6f}")
+  
+    std_dev, mean_deviation = compute_std_and_mean_deviation(data)
+
+    print(f"Среднеквадратичное отклонение: {std_dev:.6f}")
+    print(f"Среднее отклонение: {mean_deviation:.6f}")
 
 if __name__ == "__main__":
     main()
